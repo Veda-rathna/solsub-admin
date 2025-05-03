@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports - SolSub Admin{% endblock %}
+
+{% block content %}
+<div class="flex-1 space-y-4">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-3xl font-bold tracking-tight">Reports</h2>
+            <p class="text-gray-500">Generate and download reports</p>
+        </div>
+        <button id="printReport" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center">
+            <i data-lucide="printer" class="h-4 w-4 mr-2"></i> Print Report
+        </button>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2">
+        <div class="bg-white rounded-lg border shadow-sm">
+            <div class="p-4 border-b">
+                <h3 class="text-lg font-medium">Monthly Revenue</h3>
+            </div>
+            <div class="p-4">
+                <canvas id="monthlyRevenueChart" height="300"></canvas>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg border shadow-sm">
+            <div class="p-4 border-b">
+                <h3 class="text-lg font-medium">Cluster Performance</h3>
+            </div>
+            <div class="p-4">
+                <canvas id="clusterPerformanceChart" height="300"></canvas>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg border shadow-sm">
+            <div class="p-4 border-b">
+                <h3 class="text-lg font-medium">User Growth</h3>
+            </div>
+            <div class="p-4">
+                <canvas id="userGrowthChart" height="300"></canvas>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg border shadow-sm">
+            <div class="p-4 border-b">
+                <h3 class="text-lg font-medium">Report Settings</h3>
+            </div>
+            <div class="p-4">
+                <div class="space-y-4">
+                    <div>
+                        <label for="reportType" class="block text-sm font-medium text-gray-700">Report Type</label>
+                        <select id="reportType" class="mt-1 w-full border border-gray-300 rounded-md p-2">
+                            <option value="summary">Summary Report</option>
+                            <option value="detailed">Detailed Report</option>
+                            <option value="financial">Financial Report</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="dateRange" class="block text-sm font-medium text-gray-700">Date Range</label>
+                        <select id="dateRange" class="mt-1 w-full border border-gray-300 rounded-md p-2">
+                            <option value="last30days">Last 30 Days</option>
+                            <option value="last90days">Last 90 Days</option>
+                            <option value="lastYear">Last Year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    
+                    <div id="customDateRange" class="hidden grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="startDate" class="block text-sm font-medium text-gray-700">Start Date</label>
+                            <input type="date" id="startDate" class="mt-1 w-full border border-gray-300 rounded-md p-2">
+                        </div>
+                        <div>
+                            <label for="endDate" class="block text-sm font-medium text-gray-700">End Date</label>
+                            <input type="date" id="endDate" class="mt-1 w-full border border-gray-300 rounded-md p-2">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="includeData" class="block text-sm font-medium text-gray-700">Include Data</label>
+                        <div class="mt-2 space-y-2">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="includeRevenue" class="rounded border-gray-300 text-blue-600" checked>
+                                <label for="includeRevenue" class="ml-2 text-sm text-gray-700">Revenue Data</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="includeUsers" class="rounded border-gray-300 text-blue-600" checked>
+                                <label for="includeUsers" class="ml-2 text-sm text-gray-700">User Data</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="includeSubscriptions" class="rounded border-gray-300 text-blue-600" checked>
+                                <label for="includeSubscriptions" class="ml-2 text-sm text-gray-700">Subscription Data</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <button id="generateReport" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 w-full">Generate Report</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="reportPreview" class="bg-white rounded-lg border shadow-sm hidden">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="text-lg font-medium">Report Preview</h3>
+            <div class="flex gap-2">
+                <button id="downloadPDF" class="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 flex items-center">
+                    <i data-lucide="file-type-pdf" class="h-4 w-4 mr-1"></i> PDF
+                </button>
+                <button id="downloadCSV" class="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 flex items-center">
+                    <i data-lucide="file-type-csv" class="h-4 w-4 mr-1"></i> CSV
+                </button>
+            </div>
+        </div>
+        <div class="p-4">
+            <div id="reportContent" class="space-y-4">
+                <!-- Report content will be generated here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show/hide custom date range based on selection
+        const dateRangeSelect = document.getElementById('dateRange');
+        const customDateRange = document.getElementById('customDateRange');
+        
+        dateRangeSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customDateRange.classList.remove('hidden');
+            } else {
+                customDateRange.classList.add('hidden');
+            }
+        });
+        
+        // Generate report button
+        const generateReportBtn = document.getElementById('generateReport');
+        const reportPreview = document.getElementById('reportPreview');
+        const reportContent = document.getElementById('reportContent');
+        
+        generateReportBtn.addEventListener('click', function() {
+            // Show the report preview section
+            reportPreview.classList.remove('hidden');
+            
+            // Get selected options
+            const reportType = document.getElementById('reportType').value;
+            const dateRange = document.getElementById('dateRange').value;
+            
+            // Generate report content based on selections
+            let reportHTML = `
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold">SolSub Admin ${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report</h2>
+                    <p class="text-gray-500">Generated on ${new Date().toLocaleDateString()}</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gray-50 p-4 rounded-lg border text-center">
+                        <h3 class="text-lg font-medium">Total Revenue</h3>
+                        <p class="text-3xl font-bold">₹{{ total_revenue|floatformat:2 }}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg border text-center">
+                        <h3 class="text-lg font-medium">Active Subscriptions</h3>
+                        <p class="text-3xl font-bold">{{ active_match_ids }}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg border text-center">
+                        <h3 class="text-lg font-medium">Conversion Rate</h3>
+                        <p class="text-3xl font-bold">{{ trial_conversion_rate|floatformat:0 }}%</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-medium mb-2">Monthly Revenue Breakdown</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left border">
+                                <thead class="bg-gray-50 text-gray-700">
+                                    <tr>
+                                        <th class="px-4 py-2 border">Month</th>
+                                        <th class="px-4 py-2 border">Revenue</th>
+                                        <th class="px-4 py-2 border">Payments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for month, data in monthly_revenue.items %}
+                                    <tr class="border">
+                                        <td class="px-4 py-2 border">{{ month }}</td>
+                                        <td class="px-4 py-2 border">₹{{ data|floatformat:2 }}</td>
+                                        <td class="px-4 py-2 border">-</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-medium mb-2">Cluster Performance</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left border">
+                                <thead class="bg-gray-50 text-gray-700">
+                                    <tr>
+                                        <th class="px-4 py-2 border">Cluster</th>
+                                        <th class="px-4 py-2 border">Revenue</th>
+                                        <th class="px-4 py-2 border">Payments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cluster, data in cluster_performance.items %}
+                                    <tr class="border">
+                                        <td class="px-4 py-2 border">{{ cluster }}</td>
+                                        <td class="px-4 py-2 border">₹{{ data.revenue|floatformat:2 }}</td>
+                                        <td class="px-4 py-2 border">{{ data.count }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            reportContent.innerHTML = reportHTML;
+            
+            // Re-initialize Lucide icons
+            lucide.createIcons();
+            
+            // Scroll to the report preview
+            reportPreview.scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Print report functionality
+        document.getElementById('printReport').addEventListener('click', function() {
+            window.print();
+        });
+        
+        // Download buttons (these would need backend implementation)
+        document.getElementById('downloadPDF').addEventListener('click', function() {
+            alert('PDF download functionality would be implemented on the backend');
+        });
+        
+        document.getElementById('downloadCSV').addEventListener('click', function() {
+            alert('CSV download functionality would be implemented on the backend');
+        });
+        
+        // Initialize charts
+        // Monthly Revenue Chart
+        const monthlyRevenueCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
+        new Chart(monthlyRevenueCtx, {
+            type: 'line',
+            data: {
+                labels: Object.keys({{ monthly_revenue|safe }}),
+                datasets: [{
+                    label: 'Monthly Revenue (₹)',
+                    data: Object.values({{ monthly_revenue|safe }}),
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 2,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Cluster Performance Chart
+        const clusterData = {{ cluster_performance|safe }};
+        const clusterLabels = Object.keys(clusterData);
+        const clusterRevenue = clusterLabels.map(label => clusterData[label].revenue);
+        const clusterCounts = clusterLabels.map(label => clusterData[label].count);
+        
+        const clusterPerformanceCtx = document.getElementById('clusterPerformanceChart').getContext('2d');
+        new Chart(clusterPerformanceCtx, {
+            type: 'bar',
+            data: {
+                labels: clusterLabels,
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: clusterRevenue,
+                    backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Number of Payments',
+                    data: clusterCounts,
+                    backgroundColor: 'rgba(245, 158, 11, 0.6)',
+                    borderColor: 'rgba(245, 158, 11, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // User Growth Chart
+        const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+        new Chart(userGrowthCtx, {
+            type: 'line',
+            data: {
+                labels: Object.keys({{ user_growth|safe }}),
+                datasets: [{
+                    label: 'New Users',
+                    data: Object.values({{ user_growth|safe }}),
+                    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                    borderColor: 'rgba(139, 92, 246, 1)',
+                    borderWidth: 2,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

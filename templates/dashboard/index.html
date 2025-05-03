@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - SolSub Admin{% endblock %}
+
+{% block content %}
+<div class="flex-1 space-y-4">
+    <div class="flex items-center justify-between">
+        <h2 class="text-3xl font-bold tracking-tight">SolSub Admin Dashboard</h2>
+        <div class="flex items-center space-x-2">
+            <select class="border rounded-md p-2 text-sm" id="clusterFilter">
+                <option>All Clusters</option>
+                <option>Cluster A</option>
+                <option>Cluster B</option>
+            </select>
+        </div>
+    </div>
+    <p class="text-muted-foreground text-gray-500">Manage your subscription clusters, payments, and users.</p>
+
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div class="bg-white p-4 rounded-lg border shadow-sm">
+            <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <h3 class="text-sm font-medium">Total Revenue</h3>
+                <i data-lucide="dollar-sign" class="h-4 w-4 text-gray-500"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold">₹{{ total_revenue|floatformat:2 }}</div>
+                <p class="text-xs text-gray-500">+20.1% from last month</p>
+            </div>
+        </div>
+        <div class="bg-white p-4 rounded-lg border shadow-sm">
+            <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <h3 class="text-sm font-medium">Active Subscriptions</h3>
+                <i data-lucide="arrow-up-right" class="h-4 w-4 text-gray-500"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold">{{ active_match_ids }}</div>
+                <p class="text-xs text-gray-500">+7 since last week</p>
+            </div>
+        </div>
+        <div class="bg-white p-4 rounded-lg border shadow-sm">
+            <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <h3 class="text-sm font-medium">Active Clusters</h3>
+                <i data-lucide="layers" class="h-4 w-4 text-gray-500"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold">{{ cluster_count }}</div>
+                <p class="text-xs text-gray-500">+2 new this month</p>
+            </div>
+        </div>
+        <div class="bg-white p-4 rounded-lg border shadow-sm">
+            <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <h3 class="text-sm font-medium">Total Conversions</h3>
+                <i data-lucide="users" class="h-4 w-4 text-gray-500"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold">{{ trial_conversion_rate|floatformat:0 }}%</div>
+                <p class="text-xs text-gray-500">+4% from last month</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-lg border shadow-sm">
+        <div class="mb-4 border-b">
+            <div class="flex flex-wrap -mb-px">
+                <button class="tab-button inline-block p-4 border-b-2 border-blue-600 text-blue-600" data-tab="payment-receipts">Payment Receipts</button>
+                <button class="tab-button inline-block p-4 border-b-2 border-transparent hover:border-gray-300" data-tab="clusters">Clusters</button>
+                <button class="tab-button inline-block p-4 border-b-2 border-transparent hover:border-gray-300" data-tab="match-ids">Match IDs</button>
+                <button class="tab-button inline-block p-4 border-b-2 border-transparent hover:border-gray-300" data-tab="users">Users</button>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="payment-receipts">
+            <div class="space-y-4">
+                <div class="bg-white p-4 rounded-lg border shadow-sm">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-medium">Payment Receipts by Month</h3>
+                        <p class="text-sm text-gray-500">Monthly payment data across all clusters</p>
+                    </div>
+                    <div class="pl-2">
+                        <canvas id="paymentChart" height="350"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg border shadow-sm">
+                    <div class="p-4 border-b">
+                        <h3 class="text-lg font-medium">Recent Payments</h3>
+                        <p class="text-sm text-gray-500">Recent payments across all clusters</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 text-gray-700">
+                                <tr>
+                                    <th class="px-4 py-3">Payment ID</th>
+                                    <th class="px-4 py-3">Match ID</th>
+                                    <th class="px-4 py-3">Cluster</th>
+                                    <th class="px-4 py-3">Amount (₹)</th>
+                                    <th class="px-4 py-3">Date</th>
+                                    <th class="px-4 py-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments|slice:":10" %}
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="px-4 py-3 font-mono">{{ payment.id }}</td>
+                                    <td class="px-4 py-3">{{ payment.match_id }}</td>
+                                    <td class="px-4 py-3">{{ payment.cluster_name }}</td>
+                                    <td class="px-4 py-3">₹{{ payment.amount|floatformat:2 }}</td>
+                                    <td class="px-4 py-3">{{ payment.date }}</td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold 
+                                            {% if payment.status == 'Completed' %}badge-success{% else %}badge-destructive{% endif %}">
+                                            {{ payment.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content hidden" id="clusters">
+            <p class="p-4">Clusters content will be loaded here...</p>
+        </div>
+        
+        <div class="tab-content hidden" id="match-ids">
+            <p class="p-4">Match IDs content will be loaded here...</p>
+        </div>
+        
+        <div class="tab-content hidden" id="users">
+            <p class="p-4">Users content will be loaded here...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Tab functionality
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', () => {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('border-blue-600', 'text-blue-600');
+                btn.classList.add('border-transparent');
+            });
+            
+            // Show selected tab content
+            const tabId = button.getAttribute('data-tab');
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            // Add active class to clicked button
+            button.classList.remove('border-transparent');
+            button.classList.add('border-blue-600', 'text-blue-600');
+        });
+    });
+
+    // Fetch payment chart data
+    fetch('/api/analytics/')
+        .then(response => response.json())
+        .then(data => {
+            const chartData = data.data;
+            
+            // Create chart
+            const ctx = document.getElementById('paymentChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.map(item => item.month),
+                    datasets: [
+                        {
+                            label: 'Revenue (₹)',
+                            data: chartData.map(item => item.revenue),
+                            backgroundColor: '#8884d8',
+                            borderRadius: 4,
+                        },
+                        {
+                            label: 'Number of Payments',
+                            data: chartData.map(item => item.payments),
+                            backgroundColor: '#82ca9d',
+                            borderRadius: 4,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value;
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.dataset.label === 'Revenue (₹)') {
+                                        label += '₹' + context.raw;
+                                    } else {
+                                        label += context.raw;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+    // Load tab content dynamically
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.getAttribute('data-tab');
+            if (tabId !== 'payment-receipts' && !document.getElementById(tabId).hasAttribute('data-loaded')) {
+                // Fetch content for the tab
+                fetch(`/${tabId}/`)
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const content = doc.querySelector('.flex-1.space-y-4');
+                        if (content) {
+                            document.getElementById(tabId).innerHTML = content.innerHTML;
+                            document.getElementById(tabId).setAttribute('data-loaded', 'true');
+                            // Re-initialize Lucide icons
+                            lucide.createIcons();
+                        }
+                    });
+            }
+        });
+    });
+</script>
+{% endblock %}

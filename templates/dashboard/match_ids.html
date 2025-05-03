@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Match IDs - SolSub Admin{% endblock %}
+
+{% block content %}
+<div class="flex-1 space-y-4">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-3xl font-bold tracking-tight">Match IDs</h2>
+            <p class="text-gray-500">Manage your match IDs</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg border shadow-sm mb-4">
+        <div class="p-4 border-b">
+            <h3 class="text-lg font-medium">Filter Match IDs</h3>
+        </div>
+        <div class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="space-y-2">
+                    <label for="clusterFilter" class="block text-sm font-medium text-gray-700">Cluster</label>
+                    <select id="clusterFilter" class="w-full border border-gray-300 rounded-md p-2">
+                        <option value="all">All Clusters</option>
+                        <option value="Cluster A">Cluster A</option>
+                        <option value="Cluster B">Cluster B</option>
+                        <option value="Cluster C">Cluster C</option>
+                        <option value="Cluster D">Cluster D</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label for="statusFilter" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select id="statusFilter" class="w-full border border-gray-300 rounded-md p-2">
+                        <option value="all">All Statuses</option>
+                        <option value="Trial Active">Trial Active</option>
+                        <option value="Paid Active">Paid Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label for="searchFilter" class="block text-sm font-medium text-gray-700">Search</label>
+                    <input id="searchFilter" placeholder="Match ID" class="w-full border border-gray-300 rounded-md p-2">
+                </div>
+                <div class="col-span-1 md:col-span-3 flex gap-2">
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Apply Filters</button>
+                    <button class="border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg border shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-700">
+                    <tr>
+                        <th class="px-4 py-3">Match ID</th>
+                        <th class="px-4 py-3">Cluster</th>
+                        <th class="px-4 py-3">Created On</th>
+                        <th class="px-4 py-3">Last Paid On</th>
+                        <th class="px-4 py-3">Valid Till</th>
+                        <th class="px-4 py-3">Status</th>
+                        <th class="px-4 py-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for match_id in match_ids %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-3 font-mono">{{ match_id.id }}</td>
+                        <td class="px-4 py-3">{{ match_id.cluster_name }}</td>
+                        <td class="px-4 py-3">{{ match_id.created_on }}</td>
+                        <td class="px-4 py-3">{{ match_id.last_paid_on }}</td>
+                        <td class="px-4 py-3">{{ match_id.valid_till }}</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold 
+                                {% if match_id.status == 'Paid Active' %}badge-success
+                                {% elif match_id.status == 'Trial Active' %}badge-outline
+                                {% else %}badge-secondary{% endif %}">
+                                {{ match_id.status }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-2">
+                                <button class="p-1 border rounded-md hover:bg-gray-50" title="View">
+                                    <i data-lucide="eye" class="h-4 w-4"></i>
+                                </button>
+                                <button class="p-1 border rounded-md hover:bg-gray-50" title="Refresh">
+                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

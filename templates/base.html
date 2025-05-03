@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SolSub Admin{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sidebar-link.active {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+        .badge-success {
+            background-color: #22c55e;
+            color: white;
+        }
+        .badge-destructive {
+            background-color: #ef4444;
+            color: white;
+        }
+        .badge-secondary {
+            background-color: #e2e8f0;
+            color: #64748b;
+        }
+        .badge-outline {
+            background-color: transparent;
+            border: 1px solid #64748b;
+            color: #64748b;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="space-y-4 py-4 flex flex-col h-full bg-white border-r shadow-sm w-64">
+            <div class="px-3 py-2 flex-1">
+                <a href="{% url 'dashboard' %}" class="flex items-center pl-3 mb-8">
+                    <h1 class="text-xl font-bold">SolSub Admin</h1>
+                </a>
+                <div class="space-y-1">
+                    <a href="{% url 'dashboard' %}" class="sidebar-link text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-slate-100 rounded-lg transition {% if request.path == '/' %}active{% endif %}">
+                        <div class="flex items-center flex-1">
+                            <i data-lucide="bar-chart-3" class="h-5 w-5 mr-3 text-sky-500"></i>
+                            Dashboard
+                        </div>
+                    </a>
+                    <a href="{% url 'users' %}" class="sidebar-link text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-slate-100 rounded-lg transition {% if '/users/' in request.path %}active{% endif %}">
+                        <div class="flex items-center flex-1">
+                            <i data-lucide="users" class="h-5 w-5 mr-3 text-violet-500"></i>
+                            Users
+                        </div>
+                    </a>
+                    <a href="{% url 'match_ids' %}" class="sidebar-link text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-slate-100 rounded-lg transition {% if '/match-ids/' in request.path %}active{% endif %}">
+                        <div class="flex items-center flex-1">
+                            <i data-lucide="key" class="h-5 w-5 mr-3 text-pink-700"></i>
+                            Match IDs
+                        </div>
+                    </a>
+                    <a href="{% url 'payments' %}" class="sidebar-link text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-slate-100 rounded-lg transition {% if '/payments/' in request.path %}active{% endif %}">
+                        <div class="flex items-center flex-1">
+                            <i data-lucide="credit-card" class="h-5 w-5 mr-3 text-orange-700"></i>
+                            Payments
+                        </div>
+                    </a>
+                    <a href="{% url 'clusters' %}" class="sidebar-link text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-slate-100 rounded-lg transition {% if '/clusters/' in request.path %}active{% endif %}">
+                        <div class="flex items-center flex-1">
+                            <i data-lucide="layers" class="h-5 w-5 mr-3 text-emerald-500"></i>
+                            Clusters
+                        </div>
+                    </a>
+                    <a href="{% url 'reports' %}" class="sidebar-link text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-slate-100 rounded-lg transition {% if '/reports/' in request.path %}active{% endif %}">
+                        <div class="flex items-center flex-1">
+                            <i data-lucide="file-text" class="h-5 w-5 mr-3 text-blue-600"></i>
+                            Reports
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="px-3 py-2 border-t">
+                <a href="/admin/logout/" class="text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-slate-100 rounded-lg transition text-slate-500">
+                    <div class="flex items-center flex-1">
+                        <i data-lucide="log-out" class="h-5 w-5 mr-3 text-red-500"></i>
+                        Logout
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-6">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

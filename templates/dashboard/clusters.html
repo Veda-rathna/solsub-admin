@@ -1,0 +1,87 @@
+{% extends 'base.html' %} {% block title %}Clusters - SolSub Admin{% endblock %}
+{% block content %}
+<div class="flex-1 space-y-4">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-3xl font-bold tracking-tight">Clusters</h2>
+      <p class="text-gray-500">Manage your subscription clusters</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg border shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="bg-gray-50 text-gray-700">
+          <tr>
+            <th class="px-4 py-3">Name</th>
+            <th class="px-4 py-3">Price (₹)</th>
+            <th class="px-4 py-3">Timeline (days)</th>
+            <th class="px-4 py-3">Trial Period (days)</th>
+            <th class="px-4 py-3">Match ID Type</th>
+            <th class="px-4 py-3">Active Subscriptions</th>
+            <th class="px-4 py-3">API Key</th>
+            <th class="px-4 py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cluster in clusters %}
+          <tr class="border-b hover:bg-gray-50">
+            <td class="px-4 py-3 font-medium">{{ cluster.name }}</td>
+            <td class="px-4 py-3">₹{{ cluster.price|floatformat:2 }}</td>
+            <td class="px-4 py-3">{{ cluster.timeline_days }}</td>
+            <td class="px-4 py-3">{{ cluster.trial_period }}</td>
+            <td class="px-4 py-3">{{ cluster.match_id_type|cut:"_"|title }}</td>
+            <td class="px-4 py-3">{{ cluster.active_subscriptions }}</td>
+            <td class="px-4 py-3">
+              <div class="flex items-center">
+                <span class="font-mono text-xs truncate max-w-[120px]"
+                  >{{ cluster.api_key }}</span
+                >
+                <button
+                  class="p-1 ml-1 text-gray-500 hover:text-gray-700"
+                  title="Copy"
+                >
+                  <i data-lucide="copy" class="h-3 w-3"></i>
+                </button>
+              </div>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex gap-2">
+                <button
+                  class="p-1 border rounded-md hover:bg-gray-50"
+                  title="View"
+                >
+                  <i data-lucide="eye" class="h-4 w-4"></i>
+                </button>
+                <button
+                  class="p-1 border rounded-md hover:bg-gray-50"
+                  title="Edit"
+                >
+                  <i data-lucide="edit" class="h-4 w-4"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  // Copy API key functionality
+  document.addEventListener("DOMContentLoaded", function () {
+    const copyButtons = document.querySelectorAll('button[title="Copy"]');
+    copyButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const apiKey = this.previousElementSibling.textContent;
+        navigator.clipboard.writeText(apiKey).then(() => {
+          // Show a temporary tooltip or notification
+          alert("API key copied to clipboard!");
+        });
+      });
+    });
+  });
+</script>
+{% endblock %}

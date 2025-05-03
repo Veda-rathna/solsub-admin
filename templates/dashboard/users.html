@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Users - SolSub Admin{% endblock %}
+
+{% block content %}
+<div class="flex-1 space-y-4">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-3xl font-bold tracking-tight">Users</h2>
+            <p class="text-gray-500">Manage your users</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg border shadow-sm mb-4">
+        <div class="p-4 border-b">
+            <h3 class="text-lg font-medium">Filter Users</h3>
+        </div>
+        <div class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="space-y-2">
+                    <label for="hasClustersFilter" class="block text-sm font-medium text-gray-700">Has Clusters</label>
+                    <select id="hasClustersFilter" class="w-full border border-gray-300 rounded-md p-2">
+                        <option value="all">All Users</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label for="hasBankDetailsFilter" class="block text-sm font-medium text-gray-700">Has Bank Details</label>
+                    <select id="hasBankDetailsFilter" class="w-full border border-gray-300 rounded-md p-2">
+                        <option value="all">All Users</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label for="searchFilter" class="block text-sm font-medium text-gray-700">Search</label>
+                    <input id="searchFilter" placeholder="Username or Email" class="w-full border border-gray-300 rounded-md p-2">
+                </div>
+                <div class="col-span-1 md:col-span-3 flex gap-2">
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Apply Filters</button>
+                    <button class="border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg border shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-700">
+                    <tr>
+                        <th class="px-4 py-3">Username</th>
+                        <th class="px-4 py-3">Email</th>
+                        <th class="px-4 py-3">Created At</th>
+                        <th class="px-4 py-3">Clusters</th>
+                        <th class="px-4 py-3">Bank Details</th>
+                        <th class="px-4 py-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-3">{{ user.username }}</td>
+                        <td class="px-4 py-3">{{ user.email }}</td>
+                        <td class="px-4 py-3">{{ user.created_at }}</td>
+                        <td class="px-4 py-3">{{ user.cluster_count }}</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold 
+                                {% if user.has_bank_details %}badge-success{% else %}badge-secondary{% endif %}">
+                                {{ user.has_bank_details|yesno:"Yes,No" }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-2">
+                                <button class="p-1 border rounded-md hover:bg-gray-50" title="View">
+                                    <i data-lucide="eye" class="h-4 w-4"></i>
+                                </button>
+                                <button class="p-1 border rounded-md hover:bg-gray-50" title="Edit">
+                                    <i data-lucide="edit" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
