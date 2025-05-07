@@ -1,4 +1,3 @@
-# solsub_admin/mongo_models.py
 from mongoengine import (
     Document, 
     StringField, 
@@ -9,7 +8,8 @@ from mongoengine import (
     EmailField, 
     DateTimeField,
     BooleanField,
-    IntField
+    IntField,
+    ReferenceField
 )
 
 class BankDetails(EmbeddedDocument):
@@ -68,13 +68,22 @@ class UserProfile(Document):
 class Payment(Document):
     payment_id = StringField(required=True, unique=True)
     match_id = StringField(required=True)
-    cluster_name = StringField(required=True)
+    api_key = StringField(required=True)
     amount = DecimalField(precision=2, required=True)
     status = StringField(choices=('Pending', 'Completed', 'Failed'), default='Pending')
     payment_date = DateTimeField(required=True)
-    user_email = EmailField()
+    user_email = EmailField(required=False)
     
     meta = {
         'collection': 'payments',
-        'indexes': ['payment_id', 'match_id', 'payment_date']
+        'indexes': ['payment_id', 'match_id', 'payment_date', 'api_key']
     }
+    
+    @property
+    def cluster_name(self):
+        """Get cluster name from api_key for backward compatibility"""
+        for user in UserProfile.objects:
+            for cluster in user.clusters:
+                if cluster.api_key == self.api_key:
+                    return cluster.cluster_name
+        return None

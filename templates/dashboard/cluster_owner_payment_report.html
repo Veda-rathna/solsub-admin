@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Cluster Owner Payment Report - SolSub Admin{% endblock %}
+
+{% block content %}
+<div class="flex-1 space-y-4">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-3xl font-bold tracking-tight">Cluster Owner Payment Report</h2>
+            <p class="text-gray-500">Monthly payment report for cluster owners</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'cluster_owner_payment_report' %}?{% if cluster_name %}cluster_name={{ cluster_name }}&{% endif %}format=pdf" 
+               class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 flex items-center">
+                <i data-lucide="file-type-pdf" class="h-4 w-4 mr-2"></i> Download PDF
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg border shadow-sm mb-4">
+        <div class="p-4 border-b">
+            <h3 class="text-lg font-medium">Filter Report</h3>
+        </div>
+        <div class="p-4">
+            <form method="GET" action="{% url 'cluster_owner_payment_report' %}" class="flex flex-wrap gap-4 items-end">
+                <div class="space-y-2">
+                    <label for="cluster_name" class="block text-sm font-medium text-gray-700">Select Cluster</label>
+                    <select id="cluster_name" name="cluster_name" class="w-64 border border-gray-300 rounded-md p-2">
+                        <option value="">All Clusters</option>
+                        {% for name in cluster_names %}
+                        <option value="{{ name }}" {% if cluster_name == name %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    Generate Report
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="reportContent" class="space-y-4">
+        <div class="bg-white rounded-lg border shadow-sm">
+            <div class="p-4 border-b">
+                <h3 class="text-lg font-medium">
+                    {% if cluster_name %}
+                    Payment Report for {{ cluster_name }} - {{ month_name }} {{ year }}
+                    {% else %}
+                    Payment Report for All Clusters - {{ month_name }} {{ year }}
+                    {% endif %}
+                </h3>
+            </div>
+            <div class="p-4">
+                {% if owner_info %}
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <h4 class="text-md font-medium mb-2">Cluster Owner Information</h4>
+                        <div class="space-y-1">
+                            <p><span class="font-medium">Name:</span> {{ owner_info.username }}</p>
+                            <p><span class="font-medium">Email:</span> {{ owner_info.email }}</p>
+                        </div>
+                    </div>
+                    {% if owner_info.bank_details %}
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <h4 class="text-md font-medium mb-2">Bank Details</h4>
+                        <div class="space-y-1">
+                            <p><span class="font-medium">Bank:</span> {{ owner_info.bank_details.bank_name }}</p>
+                            <p><span class="font-medium">Account:</span> {{ owner_info.bank_details.account_number }}</p>
+                            <p><span class="font-medium">IFSC:</span> {{ owner_info.bank_details.ifsc_code }}</p>
+                            <p><span class="font-medium">Branch:</span> {{ owner_info.bank_details.branch_name }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <h4 class="text-md font-medium mb-2">Bank Details</h4>
+                        <p class="text-red-500">No bank details available</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg border text-center">
+                        <h4 class="text-md font-medium">Total Revenue</h4>
+                        <p class="text-2xl font-bold">₹{{ total_amount|floatformat:2 }}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg border text-center">
+                        <h4 class="text-md font-medium">Total Payments</h4>
+                        <p class="text-2xl font-bold">{{ payments|length }}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg border text-center">
+                        <h4 class="text-md font-medium">Month</h4>
+                        <p class="text-2xl font-bold">{{ month_name }} {{ year }}</p>
+                    </div>
+                </div>
+
+                {% if payments %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border">
+                        <thead class="bg-gray-50 text-gray-700">
+                            <tr>
+                                <th class="px-4 py-2 border">Payment ID</th>
+                                <th class="px-4 py-2 border">Match ID</th>
+                                {% if not cluster_name %}
+                                <th class="px-4 py-2 border">Cluster</th>
+                                {% endif %}
+                                <th class="px-4 py-2 border">Amount</th>
+                                <th class="px-4 py-2 border">Date</th>
+                                <th class="px-4 py-2 border">User Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr class="border">
+                                <td class="px-4 py-2 border font-mono">{{ payment.id }}</td>
+                                <td class="px-4 py-2 border">{{ payment.match_id }}</td>
+                                {% if not cluster_name %}
+                                <td class="px-4 py-2 border">{{ payment.cluster_name }}</td>
+                                {% endif %}
+                                <td class="px-4 py-2 border">₹{{ payment.amount|floatformat:2 }}</td>
+                                <td class="px-4 py-2 border">{{ payment.date }}</td>
+                                <td class="px-4 py-2 border">{{ payment.user_email }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-gray-50 font-medium">
+                            <tr>
+                                <td class="px-4 py-2 border" colspan="{% if not cluster_name %}3{% else %}2{% endif %}">Total</td>
+                                <td class="px-4 py-2 border">₹{{ total_amount|floatformat:2 }}</td>
+                                <td class="px-4 py-2 border" colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <p class="text-gray-500">No payments found for the selected criteria.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
